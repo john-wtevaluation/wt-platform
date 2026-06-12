@@ -1,8 +1,19 @@
 // pages/api/state.js — reads and writes the firm's data to Neon Postgres.
 // Auth: requests must include header x-wt-key matching the APP_PASSWORD env var.
+// The app_state table is created automatically on first use; no setup step needed.
 import { neon } from "@neondatabase/serverless";
 
 export const config = { api: { bodyParser: { sizeLimit: "2mb" } } };
+
+async function ensureTable(sql) {
+  await sql`
+    CREATE TABLE IF NOT EXISTS app_state (
+      id INTEGER PRIMARY KEY,
+      data JSONB NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT now()
+    )
+  `;
+}
 
 export default async function handler(req, res) {
   if (req.headers["x-wt-key"] !== process.env.APP_PASSWORD) {
@@ -10,6 +21,7 @@ export default async function handler(req, res) {
   }
   const sql = neon(process.env.DATABASE_URL);
   try {
+    await ensureTable(sql);
     if (req.method === "GET") {
       const rows = await sql`SELECT data, updated_at FROM app_state WHERE id = 1`;
       return res.status(200).json(rows[0] ? { data: rows[0].data, updatedAt: rows[0].updated_at } : { data: null });
