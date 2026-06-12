@@ -1,4 +1,4 @@
-// pages/index.js — Wilson & Tubbs Evaluation Management Platform (Phase 1)
+// pages/index.js - Wilson & Tubbs Evaluation Management Platform (Phase 1)
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import Head from "next/head";
 import {
@@ -120,7 +120,7 @@ export default function Home() {
       setAuthed(true);
     } catch (e) {
       if (e.message === "auth") setAuthed(false);
-      else { setAuthed(false); setLoginErr("Could not reach the database. Check Vercel env vars and /api/setup."); }
+      else { setAuthed(false); setLoginErr("Could not reach the database. Check Vercel env vars."); }
     }
   };
 
@@ -153,13 +153,18 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <script src="https://cdn.tailwindcss.com"></script>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="WT Platform" />
+        <meta name="theme-color" content="#1B2266" />
+        <link rel="apple-touch-icon" href="/api/icon" />
       </Head>
       {inner}
     </>
   );
 
   if (authed === null || (authed && !data))
-    return shell(<div className="min-h-screen flex items-center justify-center text-gray-400 text-sm" style={{ fontFamily: "Inter, sans-serif" }}>Loading your firm\u2026</div>);
+    return shell(<div className="min-h-screen flex items-center justify-center text-gray-400 text-sm" style={{ fontFamily: "Inter, sans-serif" }}>{"Loading your firm..."}</div>);
 
   if (!authed)
     return shell(
@@ -191,7 +196,7 @@ export default function Home() {
             <div className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Wilson <span className="opacity-50">&</span> Tubbs</div>
             <div className="text-[10px] tracking-[0.2em] uppercase opacity-60">Measuring Impact | Driving Results</div>
           </div>
-          <div className="text-[10px] opacity-60">{saveState === "saving" ? "Saving\u2026" : saveState === "saved" ? "Saved" : saveState === "error" ? "Save failed \u2014 retry" : ""}</div>
+          <div className="text-[10px] opacity-60">{saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved" : saveState === "error" ? "Save failed - retry" : ""}</div>
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-3 pt-4">
@@ -268,7 +273,7 @@ function Dashboard({ data, setTab }) {
             {u.overdue ? <AlertTriangle size={14} color="#B3322B" /> : <Circle size={8} className="text-gray-300" fill="currentColor" />}
             <div className="flex-1 min-w-0">
               <div className="text-sm truncate">{u.label}</div>
-              <div className="text-[11px] text-gray-400">{u.kind} \u00b7 {u.overdue ? "overdue " : "due "}{fmtD(u.due)}</div>
+              <div className="text-[11px] text-gray-400">{u.kind}{" \u00b7 "}{u.overdue ? "overdue " : "due "}{fmtD(u.due)}</div>
             </div>
           </div>
         ))}
@@ -333,7 +338,7 @@ function CRM({ data, update }) {
         if (!opps.length) return null;
         return (
           <div key={stage} className="mb-4">
-            <div className="text-xs font-bold uppercase tracking-wider mb-1.5 px-1" style={{ color: NAVY }}>{stage} <span className="text-gray-300 font-medium">\u00b7 {opps.length}</span></div>
+            <div className="text-xs font-bold uppercase tracking-wider mb-1.5 px-1" style={{ color: NAVY }}>{stage} <span className="text-gray-300 font-medium">{"\u00b7 "}{opps.length}</span></div>
             {opps.map((o) => (
               <Card key={o.id} className="p-3 mb-2">
                 <button className="w-full text-left" onClick={() => setOpen(open === o.id ? null : o.id)}>
@@ -412,12 +417,12 @@ function Projects({ data, update }) {
                 <HealthDot h={h} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">{p.name}</div>
-                  <div className="text-xs text-gray-400 truncate">{p.org} \u00b7 {p.status}{p.value ? ` \u00b7 ${fmt$(p.value)}` : ""}</div>
+                  <div className="text-xs text-gray-400 truncate">{p.org}{" \u00b7 "}{p.status}{p.value ? ` \u00b7 ${fmt$(p.value)}` : ""}</div>
                 </div>
                 {open === p.id ? <ChevronUp size={16} className="text-gray-300" /> : <ChevronDown size={16} className="text-gray-300" />}
               </div>
               <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${avgPct}%`, background: NAVY }} /></div>
-              <div className="text-[11px] text-gray-400 mt-1" style={{ fontVariantNumeric: "tabular-nums" }}>{avgPct}% complete \u00b7 {openCt} open task{openCt === 1 ? "" : "s"}</div>
+              <div className="text-[11px] text-gray-400 mt-1" style={{ fontVariantNumeric: "tabular-nums" }}>{avgPct}% complete{" \u00b7 "}{openCt} open task{openCt === 1 ? "" : "s"}</div>
             </button>
             {open === p.id && (
               <div className="px-3 pb-3 border-t border-gray-100">
@@ -434,7 +439,7 @@ function Projects({ data, update }) {
                       <div className={`text-sm truncate ${m.pct === 100 ? "text-gray-300 line-through" : ""}`}>{m.name}</div>
                       <div className="text-[11px]" style={{ color: isPast(m.due) && m.pct < 100 ? "#B3322B" : "#9CA3AF" }}>{m.due ? fmtD(m.due) : "no date"}</div>
                     </div>
-                    <button className={btnGhost} onClick={() => setMs(p.id, m.id, m.pct - 10)}>\u2212</button>
+                    <button className={btnGhost} onClick={() => setMs(p.id, m.id, m.pct - 10)}>-</button>
                     <span className="text-sm font-bold w-10 text-center" style={{ color: NAVY, fontVariantNumeric: "tabular-nums" }}>{m.pct}%</span>
                     <button className={btnGhost} onClick={() => setMs(p.id, m.id, m.pct + 10)}>+</button>
                   </div>
@@ -447,12 +452,12 @@ function Projects({ data, update }) {
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className={`text-sm truncate ${t.status === "Complete" ? "text-gray-300 line-through" : ""}`}>{t.title}</div>
-                      <div className="text-[11px]" style={{ color: isPast(t.due) && t.status !== "Complete" ? "#B3322B" : "#9CA3AF" }}>{t.assignee} \u00b7 {t.status}{t.due ? ` \u00b7 ${fmtD(t.due)}` : ""} \u00b7 {t.priority}</div>
+                      <div className="text-[11px]" style={{ color: isPast(t.due) && t.status !== "Complete" ? "#B3322B" : "#9CA3AF" }}>{t.assignee}{" \u00b7 "}{t.status}{t.due ? ` \u00b7 ${fmtD(t.due)}` : ""}{" \u00b7 "}{t.priority}</div>
                     </div>
                   </button>
                 ))}
                 <div className="flex gap-2 mt-2">
-                  <input className={inp + " flex-1"} placeholder="New task\u2026" value={f.title || ""} onChange={(e) => setTaskForm({ ...taskForm, [p.id]: { ...f, title: e.target.value } })} />
+                  <input className={inp + " flex-1"} placeholder="New task..." value={f.title || ""} onChange={(e) => setTaskForm({ ...taskForm, [p.id]: { ...f, title: e.target.value } })} />
                   <button className={btnPrimary} style={{ background: NAVY }} onClick={() => addTask(p.id)}><Plus size={16} /></button>
                 </div>
               </div>
@@ -504,7 +509,7 @@ function Time({ data, update }) {
           <div key={t.id} className="px-3 py-2 text-sm flex justify-between">
             <div className="min-w-0">
               <div className="truncate">{projName(t.projectId)}{t.note ? ` \u2014 ${t.note}` : ""}</div>
-              <div className="text-[11px] text-gray-400">{t.person} \u00b7 {fmtD(t.date)} \u00b7 {t.billable ? "billable" : "non-billable"}</div>
+              <div className="text-[11px] text-gray-400">{t.person}{" \u00b7 "}{fmtD(t.date)}{" \u00b7 "}{t.billable ? "billable" : "non-billable"}</div>
             </div>
             <span className="font-bold ml-2" style={{ color: NAVY, fontVariantNumeric: "tabular-nums" }}>{t.hours}h</span>
           </div>
@@ -576,7 +581,7 @@ function Money({ data, update }) {
             <Field label="Amount ($)"><input type="number" className={inp} value={inv.amount} onChange={(e) => setInv({ ...inv, amount: e.target.value })} /></Field>
             <Field label="Due date"><input type="date" className={inp} value={inv.due} onChange={(e) => setInv({ ...inv, due: e.target.value })} /></Field>
           </div>
-          <Field label="Project (drives commission)"><select className={inp} value={inv.projectId} onChange={(e) => setInv({ ...inv, projectId: e.target.value })}><option value="">\u2014 none \u2014</option>{data.projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Field>
+          <Field label="Project (drives commission)"><select className={inp} value={inv.projectId} onChange={(e) => setInv({ ...inv, projectId: e.target.value })}><option value="">{"\u2014 none \u2014"}</option>{data.projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Field>
           <button className={btnPrimary + " w-full"} style={{ background: NAVY }} onClick={addInvoice}>Create {nextNumber()}</button>
         </Card>
       )}
@@ -586,7 +591,7 @@ function Money({ data, update }) {
           return (
             <div key={i.id} className="px-3 py-2.5 flex items-center gap-2">
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold">{i.number} <span className="font-normal text-gray-500">\u00b7 {i.org}</span></div>
+                <div className="text-sm font-semibold">{i.number} <span className="font-normal text-gray-500">{"\u00b7 "}{i.org}</span></div>
                 <div className="text-[11px] text-gray-400">due {fmtD(i.due)}{i.paidDate ? ` \u00b7 paid ${fmtD(i.paidDate)}` : ""}</div>
               </div>
               <div className="text-right">
@@ -631,7 +636,7 @@ function Money({ data, update }) {
         {data.expenses.length === 0 && <div className="px-3 py-4 text-sm text-gray-400">No expenses submitted. Both partners must approve per the operating agreement.</div>}
       </Card>
 
-      <SectionTitle>Distribution preview \u2014 {yr} YTD</SectionTitle>
+      <SectionTitle>Distribution preview {"\u00b7"} {yr} YTD</SectionTitle>
       <Card className="p-3 mb-4">
         <Ledger label="Revenue (paid invoices)" value={revenue} bold />
         <Ledger label={`Acquisition commission 10%${Object.keys(commissionBy).length ? " (" + Object.entries(commissionBy).map(([k, v]) => `${k} ${fmt$(v)}`).join(", ") + ")" : ""}`} value={-commissionTotal} />
@@ -641,7 +646,7 @@ function Money({ data, update }) {
         <Ledger label="Retained earnings (5%)" value={-retained} />
         <Ledger label="Distributable" value={distributable} bold rule />
         {PARTNERS.map((p) => (
-          <Ledger key={p} label={`${p} \u2014 50% share${commissionBy[p] ? ` + ${fmt$(commissionBy[p])} commission` : ""}`} value={perPartner + (commissionBy[p] || 0)} accent />
+          <Ledger key={p} label={`${p} \u00b7 50% share${commissionBy[p] ? ` + ${fmt$(commissionBy[p])} commission` : ""}`} value={perPartner + (commissionBy[p] || 0)} accent />
         ))}
         <div className="text-[11px] text-gray-400 mt-3 leading-snug">
           Commission, tax reserve, and retained earnings rules come from the draft operating agreement. Confirm the executed agreement is amended before treating this as binding.
