@@ -525,6 +525,7 @@ function Money({ data, update }) {
   const [inv, setInv] = useState({ org: "", amount: "", due: "", projectId: "" });
   const [addingExp, setAddingExp] = useState(false);
   const [exp, setExp] = useState({ desc: "", amount: "", date: today() });
+  const [openInv, setOpenInv] = useState(null);
 
   const nextNumber = () => `WT-${String(data.invoices.length + 1).padStart(3, "0")}`;
   const cycleInvoice = (id) => update((d) => ({
@@ -542,6 +543,8 @@ function Money({ data, update }) {
     setInv({ org: "", amount: "", due: "", projectId: "" });
     setAddingInv(false);
   };
+  const setInvField = (id, field, val) => update((d) => ({ ...d, invoices: d.invoices.map((i) => (i.id === id ? { ...i, [field]: val } : i)) }));
+  const deleteInvoice = (id) => update((d) => ({ ...d, invoices: d.invoices.filter((i) => i.id !== id) }));
   const addExpense = () => {
     if (!exp.desc || !exp.amount) return;
     update((d) => ({ ...d, expenses: [...d.expenses, { id: uid(), desc: exp.desc, amount: Number(exp.amount), date: exp.date, approvals: [] }] }));
@@ -588,18 +591,48 @@ function Money({ data, update }) {
       <Card className="divide-y divide-gray-100 mb-5">
         {data.invoices.slice().sort((a, b) => (b.due || "").localeCompare(a.due || "")).map((i) => {
           const displayStatus = i.status === "Sent" && isPast(i.due) ? "Overdue" : i.status;
+          const isOpen = openInv === i.id;
           return (
-            <div key={i.id} className="px-3 py-2.5 flex items-center gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold">{i.number} <span className="font-normal text-gray-500">{"\u00b7 "}{i.org}</span></div>
-                <div className="text-[11px] text-gray-400">due {fmtD(i.due)}{i.paidDate ? ` \u00b7 paid ${fmtD(i.paidDate)}` : ""}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-bold" style={{ color: NAVY, fontVariantNumeric: "tabular-nums" }}>{fmt$(i.amount)}</div>
-                <button onClick={() => cycleInvoice(i.id)} disabled={i.status === "Paid"} className="text-[11px] font-bold uppercase tracking-wide" style={{ color: invStatusColor(i.status, i.due) }}>
-                  {displayStatus}{i.status !== "Paid" && " \u2192"}
+            <div key={i.id} className="px-3 py-2.5">
+              <div className="flex items-center gap-2">
+                <button className="flex-1 min-w-0 text-left" onClick={() => setOpenInv(isOpen ? null : i.id)}>
+                  <div className="text-sm font-semibold">{i.number} <span className="font-normal text-gray-500">{"\u00b7 "}{i.org}</span></div>
+                  <div className="text-[11px] text-gray-400">due {fmtD(i.due)}{i.paidDate ? ` \u00b7 paid ${fmtD(i.paidDate)}` : ""}</div>
                 </button>
+                <div className="text-right">
+                  <div className="text-sm font-bold" style={{ color: NAVY, fontVariantNumeric: "tabular-nums" }}>{fmt$(i.amount)}</div>
+                  <button onClick={() => cycleInvoice(i.id)} disabled={i.status === "Paid"} className="text-[11px] font-bold uppercase tracking-wide" style={{ color: invStatusColor(i.status, i.due) }}>
+                    {displayStatus}{i.status !== "Paid" && " \u2192"}
+                  </button>
+                </div>
               </div>
+              {isOpen && (
+                <div className="mt-2 pt-2 border-t border-gray-100">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Client / organization"><input className={inp} value={i.org} onChange={(e) => setInvField(i.id, "org", e.target.value)} /></Field>
+                    <Field label="Invoice #"><input className={inp} value={i.number} onChange={(e) => setInvField(i.id, "number", e.target.value)} /></Field>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Amount ($)"><input type="number" className={inp} value={i.amount ?? ""} onChange={(e) => setInvField(i.id, "amount", e.target.value ? Number(e.target.value) : null)} /></Field>
+                    <Field label="Due date"><input type="date" className={inp} value={i.due ?? ""} onChange={(e) => setInvField(i.id, "due", e.target.value)} /></Field>
+                  </div>
+                  <Field label="Project (drives commission)">
+                    <select className={inp} value={i.projectId ?? ""} onChange={(e) => setInvField(i.id, "projectId", e.target.value || null)}>
+                      <option value="">{"\u2014 none \u2014"}</option>
+                      {data.projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </Field>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Status">
+                      <select className={inp} value={i.status} onChange={(e) => setInvField(i.id, "status", e.target.value)}>
+                        {INV_FLOW.map((s) => <option key={s}>{s}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Paid date"><input type="date" className={inp} value={i.paidDate ?? ""} onChange={(e) => setInvField(i.id, "paidDate", e.target.value || null)} /></Field>
+                  </div>
+                  <button className="text-xs font-semibold text-red-600 mt-1" onClick={() => { setOpenInv(null); deleteInvoice(i.id); }}>Delete invoice</button>
+                </div>
+              )}
             </div>
           );
         })}
